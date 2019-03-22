@@ -2,6 +2,8 @@
 
 require_once 'Map.php';
 
+require_once 'pieces/EmptyPiece.php';
+
 class Gamemode
 {
     const WHITE = 1;
@@ -9,7 +11,7 @@ class Gamemode
 
     protected $map;
 
-    public function init(array $map)
+    public function __construct(array $map)
     {
         $this->map = new Map($map);
     }
@@ -23,11 +25,19 @@ class Gamemode
     {
         $moves = [];
 
-        foreach ($this->map as $piece) {
-            if ($piece->getSide() === $side) {
-                $moves []= $piece->getAvailableMoves();
+        $coord = 0;
+
+        do {
+            $piece = $this->map[$coord];
+
+            if ($piece instanceof EmptyPiece) {
+                continue;
             }
-        }
+
+            if ($piece->getSide() === $side) {
+                $moves = array_merge($moves, $piece->getAvailableMoves());
+            }
+        } while ($this->map->offsetExists(++$coord));
 
         return $moves;
     }

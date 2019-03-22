@@ -4,12 +4,12 @@ require_once 'Gamemode.php';
 
 require_once 'pieces/contracts/PieceInterface.php';
 require_once 'pieces/EmptyPiece.php';
-require_once 'pieces/BishopPiece.php';
-require_once 'pieces/KingPiece.php';
-require_once 'pieces/KnightPiece.php';
 require_once 'pieces/PawnPiece.php';
-require_once 'pieces/QueenPiece.php';
+require_once 'pieces/KnightPiece.php';
+require_once 'pieces/BishopPiece.php';
 require_once 'pieces/RockPiece.php';
+require_once 'pieces/KingPiece.php';
+require_once 'pieces/QueenPiece.php';
 
 class Map implements ArrayAccess
 {
@@ -23,26 +23,33 @@ class Map implements ArrayAccess
 
     const MAP_MINIMUM_COUNT = 64;
 
-    private $map = [];
+    const UP = 1;
+    const RIGHT_UP = 2;
+    const RIGHT = 3;
+    const RIGHT_DOWN = 4;
+    const DOWN = 5;
+    const LEFT_DOWN = 6;
+    const LEFT = 7;
+    const LEFT_UP = 8;
 
-    private $pieces = [];
+    private $map = [];
 
     public function __construct(array $map)
     {
         assert(count($map) === self::MAP_MINIMUM_COUNT, 'Too small map');
 
-        foreach ($map as $cell) {
-            assert($this->isValidCell($cell), 'Not valid map');
+        foreach ($map as $coord => $cell) {
+            $piece = $this->makePiece($cell, $coord);
+
+            assert($piece != null, 'Not valid cell');
+
+            $this->map []= $piece;
         }
-
-        $this->map = $map;
-
-        $this->initPieces();
     }
 
     protected function isValidCell($cell)
     {
-        return in_array($cell / 10, [
+        return in_array($this->getPieceConst($cell), [
             self::EMPTY_CELL,
             self::PAWN_CELL,
             self::KNIGHT_CELL,
@@ -53,56 +60,111 @@ class Map implements ArrayAccess
         ]);
     }
 
-    protected function initPieces()
+    protected function getPieceConst(int $cell)
     {
-        $this->pieces = [
-            self::EMPTY_CELL => new EmptyPiece($this),
-            self::PAWN_CELL => new BishopPiece($this),
-            self::KNIGHT_CELL => new KingPiece($this),
-            self::BISHOP_CELL => new KnightPiece($this),
-            self::ROCK_CELL => new PawnPiece($this),
-            self::KING_CELL => new QueenPiece($this),
-            self::QUEEN_CELL => new RockPiece($this),
-        ];
+        return (int) ($cell / 100);
+    }
+
+    private function makePiece(int $cell, int $coord): ?PieceInterface
+    {
+        switch ($this->getPieceConst($cell)) {
+            case self::EMPTY_CELL:
+                return new EmptyPiece($this, $coord, $cell);
+            case self::PAWN_CELL:
+                return new PawnPiece($this, $coord, $cell);
+            case self::KNIGHT_CELL:
+                return new KnightPiece($this, $coord, $cell);
+            case self::BISHOP_CELL:
+                return new BishopPiece($this, $coord, $cell);
+            case self::ROCK_CELL:
+                return new RockPiece($this, $coord, $cell);
+            case self::KING_CELL:
+                return new KingPiece($this, $coord, $cell);
+            case self::QUEEN_CELL:
+                return new QueenPiece($this, $coord, $cell);
+            default:
+                return null;
+        }
     }
 
     public function toStr(): string
     {
         $str = '';
 
-        foreach ($this->map as $cell) {
-            $piece = $this->getPiece($cell);
+        foreach ($this->map as $coord => $piece) {
+            $str .= $piece->toStr().' ';
 
-            $str .= $piece->toStr().'|';
+            if (($coord + 1) % 8 === 0) {
+                $str .= "\n";
+            }
         }
 
         return $str;
     }
 
-    private function getPiece(int $cell): PieceInterface
+    public function getRelativePiece($fromCoord, $direction): ?PieceInterface
     {
-        return $this->pieces[$cell / 10].init($cell);
+        switch ($direction) {
+            case self::UP:
+                $relativeCoord = $fromCoord - 8;
+                break;
+
+            case self::RIGHT_UP:
+                $relativeCoord = $fromCoord - 7;
+                break;
+
+            case self::RIGHT:
+                $relativeCoord = $fromCoord + 1;
+                break;
+
+            case self::RIGHT_DOWN:
+                $relativeCoord = $fromCoord + 9;
+                break;
+
+            case self::DOWN:
+                $relativeCoord = $fromCoord + 8;
+                break;
+
+            case self::LEFT_DOWN:
+                $relativeCoord = $fromCoord + 7;
+                break;
+
+            case self::LEFT:
+                $relativeCoord = $fromCoord - 1;
+                break;
+
+            case self::LEFT_UP:
+                $relativeCoord = $fromCoord - 9;
+                break;
+
+            default:
+                return null;
+        }
+
+        return isset($this->map[$relativeCoord]) ? $this->map[$relativeCoord] : null;
     }
 
-    public function offsetSet($offset, $cell)
+    public function offsetSet($coord, $cell)
     {
-        assert($this->isValidCell($cell), 'Not valid cell');
+        $piece = $this->makePiece($cell, $coord);
 
-        $this->map[$offset] = $cell;
+        assert($piece != null, 'Not valid cell');
+
+        $this->map[$coord] = $piece;
     }
 
-    public function offsetExists($offset): bool
+    public function offsetExists($coord): bool
     {
-        return isset($this->map[$offset]);
+        return isset($this->map[$coord]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($coord)
     {
-        unset($this->map[$offset]);
+        unset($this->map[$coord]);
     }
 
-    public function offsetGet($offset): ?PieceInterface
+    public function offsetGet($coord): ?PieceInterface
     {
-        return isset($this->map[$offset]) ? $this->getPiece($this->map[$offset]) : null;
+        return isset($this->map[$coord]) ? $this->map[$coord] : null;
     }
 }
