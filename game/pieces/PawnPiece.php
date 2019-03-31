@@ -54,7 +54,7 @@ class PawnPiece implements PieceInterface
                 $piece = $this->map->getRelativePiece($piece->getCoord(), $forward);
 
                 if ($piece && $piece instanceof EmptyPiece) {
-                    $moves [] = [$this->coord, $piece->getCoord()];
+                    $moves []= [$this->coord, $piece->getCoord()];
                 }
             }
         }

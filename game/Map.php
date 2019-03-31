@@ -1,16 +1,5 @@
 <?php
 
-require_once 'Gamemode.php';
-
-require_once 'pieces/contracts/PieceInterface.php';
-require_once 'pieces/EmptyPiece.php';
-require_once 'pieces/PawnPiece.php';
-require_once 'pieces/KnightPiece.php';
-require_once 'pieces/BishopPiece.php';
-require_once 'pieces/RockPiece.php';
-require_once 'pieces/KingPiece.php';
-require_once 'pieces/QueenPiece.php';
-
 class Map implements ArrayAccess
 {
     const EMPTY_CELL = 1;
@@ -23,14 +12,14 @@ class Map implements ArrayAccess
 
     const MAP_MINIMUM_COUNT = 64;
 
-    const UP = 1;
-    const RIGHT_UP = 2;
-    const RIGHT = 3;
-    const RIGHT_DOWN = 4;
-    const DOWN = 5;
-    const LEFT_DOWN = 6;
-    const LEFT = 7;
-    const LEFT_UP = 8;
+    const UP = - 8;
+    const RIGHT_UP = - 7;
+    const RIGHT = 1;
+    const RIGHT_DOWN = 9;
+    const DOWN = 8;
+    const LEFT_DOWN = 7;
+    const LEFT = - 1;
+    const LEFT_UP = - 9;
 
     private $map = [];
 
@@ -47,9 +36,9 @@ class Map implements ArrayAccess
         }
     }
 
-    protected function isValidCell($cell)
+    protected function isValidCell(int $cell)
     {
-        return in_array($this->getPieceConst($cell), [
+        return strlen($cell) === 3 && in_array($this->getPieceConst($cell), [
             self::EMPTY_CELL,
             self::PAWN_CELL,
             self::KNIGHT_CELL,
@@ -104,42 +93,15 @@ class Map implements ArrayAccess
 
     public function getRelativePiece($fromCoord, $direction): ?PieceInterface
     {
-        switch ($direction) {
-            case self::UP:
-                $relativeCoord = $fromCoord - 8;
-                break;
-
-            case self::RIGHT_UP:
-                $relativeCoord = $fromCoord - 7;
-                break;
-
-            case self::RIGHT:
-                $relativeCoord = $fromCoord + 1;
-                break;
-
-            case self::RIGHT_DOWN:
-                $relativeCoord = $fromCoord + 9;
-                break;
-
-            case self::DOWN:
-                $relativeCoord = $fromCoord + 8;
-                break;
-
-            case self::LEFT_DOWN:
-                $relativeCoord = $fromCoord + 7;
-                break;
-
-            case self::LEFT:
-                $relativeCoord = $fromCoord - 1;
-                break;
-
-            case self::LEFT_UP:
-                $relativeCoord = $fromCoord - 9;
-                break;
-
-            default:
-                return null;
+        if ($fromCoord % 8 == 0 && in_array($direction, [self::LEFT, self::LEFT_DOWN, self::LEFT_UP])) {
+            return null;
         }
+
+        if ($fromCoord % 8 == 7 && in_array($direction, [self::RIGHT, self::RIGHT_DOWN, self::RIGHT_UP])) {
+            return null;
+        }
+
+        $relativeCoord = $fromCoord + $direction;
 
         return isset($this->map[$relativeCoord]) ? $this->map[$relativeCoord] : null;
     }

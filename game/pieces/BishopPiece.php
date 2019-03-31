@@ -4,9 +4,9 @@ require_once 'contracts/PieceInterface.php';
 
 /**
  * TODO
- * Class KingPiece
+ * Class BishopPiece
  */
-class KingPiece implements PieceInterface
+class BishopPiece implements PieceInterface
 {
     protected $map;
     protected $coord;
@@ -21,17 +21,31 @@ class KingPiece implements PieceInterface
 
     public function toStr(): string
     {
-        return $this->side === Gamemode::WHITE ? '♔' : '♚';
+        return $this->side === Gamemode::WHITE ? '♗' : '♝';
     }
 
     public function getSide(): int
     {
-        return 0;
+        return $this->side;
     }
 
     public function getAvailableMoves(): array
     {
-        return [];
+        $moves = [];
+
+        foreach ([Map::RIGHT_UP, Map::RIGHT_DOWN, Map::LEFT_DOWN, Map::LEFT_UP] as $direction) {
+            $piece = $this;
+
+            do {
+                $piece = $this->map->getRelativePiece($piece->getCoord(), $direction);
+
+                if ($piece && ($piece instanceof EmptyPiece || $piece->getSide() !== $this->side)) {
+                    $moves []= [$this->coord, $piece->getCoord()];
+                }
+            } while ($piece instanceof EmptyPiece);
+        }
+
+        return $moves;
     }
 
     public function getCoord(): int

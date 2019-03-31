@@ -2,7 +2,14 @@
 
 require_once 'Map.php';
 
+require_once 'pieces/contracts/PieceInterface.php';
 require_once 'pieces/EmptyPiece.php';
+require_once 'pieces/PawnPiece.php';
+require_once 'pieces/KnightPiece.php';
+require_once 'pieces/BishopPiece.php';
+require_once 'pieces/RockPiece.php';
+require_once 'pieces/KingPiece.php';
+require_once 'pieces/QueenPiece.php';
 
 class Gamemode
 {

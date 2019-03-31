@@ -26,7 +26,7 @@ class QueenPiece implements PieceInterface
 
     public function getSide(): int
     {
-        return 0;
+        return $this->side;
     }
 
     public function getAvailableMoves(): array

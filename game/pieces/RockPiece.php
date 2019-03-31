@@ -4,9 +4,9 @@ require_once 'contracts/PieceInterface.php';
 
 /**
  * TODO
- * Class BishopPiece
+ * Class RockPiece
  */
-class BishopPiece implements PieceInterface
+class RockPiece implements PieceInterface
 {
     protected $map;
     protected $coord;
@@ -21,12 +21,12 @@ class BishopPiece implements PieceInterface
 
     public function toStr(): string
     {
-        return $this->side === Gamemode::WHITE ? '♗' : '♝';
+        return $this->side === Gamemode::WHITE ? '♖' : '♜';
     }
 
     public function getSide(): int
     {
-        return 0;
+        return $this->side;
     }
 
     public function getAvailableMoves(): array
